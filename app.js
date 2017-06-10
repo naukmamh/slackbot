@@ -1,19 +1,19 @@
 var Botkit = require('botkit')
-
-
+var cron = require('node-cron');
+var HashMap = require('hashmap');
+ 
 var token = 'xoxb-192818834532-DrpYX4YU71UC0ZcKZMO4QsDP'
-//var port = process.env.PORT || 5000;
 var controller = Botkit.slackbot({
   // reconnect to Slack RTM when connection goes bad
   retry: Infinity,
   debug: false
 })
 
-var cron = require('node-cron');
- 
-
 // Assume single team mode if we have a SLACK_TOKEN
-//if (token) {
+if (!token) {
+  console.log('Starting in Beep Boop multi-team mode')
+  require('beepboop-botkit').start(controller, { debug: true })
+}
  // console.log('Starting in single-team mode')
  var bot =  controller.spawn({
     token: token
@@ -37,26 +37,31 @@ controller.on('bot_channel_join', function (bot, message) {
 
 
 
-var x =  function (bot, message) {
+/*var x =  function (bot, message) {
   bot.say(
   {
     text: 'my message text',
     channel: 'C5K9XRGQ4' // a valid slack channel, group, mpim, or im ID
   })
-}
+}*/
 
-//1995, 11, 17, 3, 24, 0
 
-//var date = new  Date(2017,9,6,21,6);
-cron.schedule('* * * * *', function(){
-  //var now = new Date();
-  //var now2 = new Date(now.getFullYear,now.getMonth, now.getDay, now.getHours, now.getMinutes)
-
-  //if(now.getFullYear == date.getFullYear&&now.getMonth == date.getMonth&&now.getDay == date.getDay&&now.getHours == date.getHours&&now.getMinutes == date.getMinutes)
-  console.log('Every minute');
-  //else console.log('Check in every minutes');
+//var date = new  Date('2017-06-10T20:33');
+var map = new HashMap('2017-06-10T21:45','Deadline 1', '2017-06-10T21:48', 'Deadline 2','2017-06-10T20:48', 'Deadline 3');
  
- bot.api.im.open({
+cron.schedule('* * * * *', function(){
+ var now = new Date();
+ 
+ //TODO ?? first of sorted
+ map.forEach(function(value, key) {
+   // console.log(key + " : " + value);
+    var date = new Date(key);
+    if(now.getFullYear() == date.getFullYear()&&now.getMonth() == date.getMonth()&&now.getDay() == date.getDay()&&
+     now.getHours() == date.getHours()&& now.getMinutes() == date.getMinutes())
+     {
+     console.log(value);
+
+      bot.api.im.open({
         user: 'C5K9XRGQ4'
     }, (err, res) => {
         if (err) {
@@ -66,22 +71,34 @@ cron.schedule('* * * * *', function(){
         bot.startConversation({
             user: 'C5K9XRGQ4',
             channel: 'C5K9XRGQ4',
-            text: 'WOWZA... 1....2'
         }, (err, convo) => {
-            convo.say('This is the shit')
+            convo.say(value)
         });
     })
-
-
-// Send the user who added the bot to their team a welcome message the first time it's connected
-
+     }
+  else 
+    console.log('Check in every minutes');
+});
  
 });
 
-var now = new Date();
+function firstdate(){
+  //TODO check with date now
+  //
+var array = map.keys().sort();
+return array[0];
+}
+
+var dateToPrint = (firstdate()).replace(/T/, ' ');
+
+
 controller.hears(
   ['hello', 'hi', 'halo'], ['direct_message', 'direct_mention', 'mention'],
-  function (bot, message) { bot.reply(message, 'Current date = ' + now) })
+  function (bot, message) { bot.reply(message, 'Hello! I\'m notification bot!' ) })
+
+  controller.hears(
+  ['deadline'], ['direct_message'],
+  function (bot, message) { bot.reply(message, map.get(firstdate()) + ' ' + dateToPrint  ) })
 /*
 // START: listen for cat emoji delivery
 var maxCats = 20
