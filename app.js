@@ -37,17 +37,7 @@ controller.on('bot_channel_join', function (bot, message) {
 
 
 
-/*var x =  function (bot, message) {
-  bot.say(
-  {
-    text: 'my message text',
-    channel: 'C5K9XRGQ4' // a valid slack channel, group, mpim, or im ID
-  })
-}*/
-
-
-//var date = new  Date('2017-06-10T20:33');
-var map = new HashMap('2017-06-10T21:45','Deadline 1', '2017-06-10T21:48', 'Deadline 2','2017-06-10T20:48', 'Deadline 3');
+var map = new HashMap('Deadline 1','2017-06-11T21:45','Deadline 2', '2017-06-19T17:53','Deadline 3' ,'2017-06-12T20:48');
  
 cron.schedule('* * * * *', function(){
  var now = new Date();
@@ -55,42 +45,83 @@ cron.schedule('* * * * *', function(){
  //TODO ?? first of sorted
  map.forEach(function(value, key) {
    // console.log(key + " : " + value);
-    var date = new Date(key);
-    if(now.getFullYear() == date.getFullYear()&&now.getMonth() == date.getMonth()&&now.getDay() == date.getDay()&&
+    var date = new Date(value);
+  if(now.getFullYear() == date.getFullYear()&&now.getMonth() == date.getMonth()&&now.getDay() == date.getDay()&&
      now.getHours() == date.getHours()&& now.getMinutes() == date.getMinutes())
      {
-     console.log(value);
+     console.log(key);
 
-      bot.api.im.open({
-        user: 'C5K9XRGQ4'
-    }, (err, res) => {
-        if (err) {
-            bot.botkit.log('Failed to open IM with user', err)
-        }
-        console.log(res);
         bot.startConversation({
-            user: 'C5K9XRGQ4',
+           // user: '@allochka',
             channel: 'C5K9XRGQ4',
         }, (err, convo) => {
-            convo.say(value)
+            convo.say(key)
         });
-    })
      }
-  else 
-    console.log('Check in every minutes');
+
+    /*var weekdate = new Day(date.getFullYear(),date.getMonth(),date.getDay());
+    if(now.getFullYear() == weekdate.getFullYear()&&now.getMonth() == weekdate.getMonth()&&now.getDay() == weekdate.getDay())
+    // now.getHours() == date.getHours()&& now.getMinutes() == date.getMinutes())//?? 
+     {
+     console.log('7 day left to deadline ' + key);
+
+        bot.startConversation({
+           // user: '@allochka',
+            channel: 'C5K9XRGQ4',
+        }, (err, convo) => {
+            convo.say('7 day left to deadline ' + key)
+        });
+     }
+*/
+ // else 
+   // console.log('Check in every minutes');
+
 });
  
 });
 
-function firstdate(){
-  //TODO check with date now
-  //
-var array = map.keys().sort();
-return array[0];
+
+function deleteInvalidDate()
+{
+  map.forEach(function(value, key) {
+    var date = new Date(value);
+    if(!checkInvalidDate(date))
+    map.remove(key);
+  })
 }
 
-var dateToPrint = (firstdate()).replace(/T/, ' ');
 
+
+function checkInvalidDate(date)
+{
+  var now = new Date();
+  
+    if(now.getFullYear() > date.getFullYear())
+    return false;
+    
+    if(now.getMonth() > date.getMonth())
+    return false;
+
+    if(now.getDay() > date.getDay())
+    return false;
+    
+    if(now.getHours() > date.getHours())
+    return false;
+    
+    if(now.getMinutes() > date.getMinutes())
+    return false;
+
+    return true;
+ 
+}
+
+function firstdate(){
+  deleteInvalidDate();
+  var array = map.values().sort();
+  return array[0];
+}
+
+ 
 
 controller.hears(
   ['hello', 'hi', 'halo'], ['direct_message', 'direct_mention', 'mention'],
@@ -98,7 +129,127 @@ controller.hears(
 
   controller.hears(
   ['deadline'], ['direct_message'],
-  function (bot, message) { bot.reply(message, map.get(firstdate()) + ' ' + dateToPrint  ) })
+  function (bot, message) { bot.reply(message, map.search(firstdate()) + ' ' + (firstdate()).replace(/T/, ' ')) })
+
+
+function printall()
+{
+  deleteInvalidDate();
+  var s=''
+  map.forEach(function(value, key)
+   {
+    s+=key+' '+value.replace(/T/, ' ')+' \n'
+  })
+  return s;
+}
+
+  controller.hears(
+  ['all'], ['direct_message'],
+  function (bot, message) { bot.reply(message, printall() )})
+
+
+//TODO validation
+controller.hears(['add'],  [ 'direct_message'], function(bot,message) {
+
+   var newname = ''
+   var newdate = ''
+   var newtime = ''
+    
+  // start a conversation to handle this response.
+  bot.startConversation(message,function(err,convo) {
+ 
+    convo.addQuestion('I heard that you want to add new deadline! So, enter name of your deadline.',function(response,convo) {
+          
+           newname = response.text
+           convo.say('Cool your deadline: ' + response.text);
+           convo.next();  
+
+    },
+    {},'default');
+
+ convo.addQuestion('What date of your deadline? Format YYYY-MM-DD',function(response,convo) {
+          
+           newdate = response.text
+           convo.say('Date: ' + response.text);
+           convo.next();   
+
+    },
+    {},'default');
+
+     convo.addQuestion('What about time?',function(response,convo) {
+          
+          newtime = response.text
+           var newDateTime = newdate+'T'+newtime;
+           if(!checkInvalidDate(new Date(newDateTime)) )
+           { convo.say('Invalid date!Try again');
+             //convo.repeat()
+             convo.next()
+           }
+           else
+           {
+             map.set(newname, newDateTime);
+             convo.say('Time: ' + response.text);
+             convo.next();  
+           } 
+
+    },
+    {},'default');
+
+
+
+  })
+
+});
+
+
+
+
+
+
+  /*controller.hears(
+  ['add'],
+  [ 'direct_message'],
+  function (bot, message) {
+    bot.startConversation(message, function (err, convo) {
+      if (err) {
+        console.log(err)
+        return
+      }
+      convo.ask('I heard that you want to add new deadline! So, enter name of your deadline.',[
+        {
+          pattern: '[a-z]+',
+          callback: function (response, convo) {
+            convo.say('Great!')
+            var newname = response;
+            convo.next()
+            convo.ask('What date of your deadline? Format YYYY-MM-DD', [
+              {
+                pattern: '^(\d{4})-(\d{1,2})-(\d{1,2})$',
+                callback: function (response, convo) {
+                  var newdate = response;
+                  convo.next()
+
+                 convo.ask('What about time?', [
+              {
+                //pattern: '[0-9]+',
+                callback: function (response, convo) {
+                  convo.say('I added your deadline !')
+                  var newtime = response;
+                }
+                  }])
+
+                }
+              }])
+
+          }
+        }])
+    })
+  })
+*/
+
+                 
+          
+
 /*
 // START: listen for cat emoji delivery
 var maxCats = 20
