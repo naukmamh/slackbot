@@ -135,6 +135,8 @@ controller.hears(
 function printall()
 {
   deleteInvalidDate();
+  if(map.values == null) consol.log('No deadlines');
+  //if(map == null) return 'No deadlines';
   var s=''
   map.forEach(function(value, key)
    {
@@ -147,6 +149,21 @@ function printall()
   ['all'], ['direct_message'],
   function (bot, message) { bot.reply(message, printall() )})
 
+  
+  // delete deadLine
+  
+   controller.hears(
+  ['delete'], ['direct_message'],
+  function (bot, message) { 
+      bot.startConversation(message,function(err,convo) {
+ 
+    convo.addQuestion('Enter name of deadline you want to delete.',function(response,convo) {
+        var namedelete = response.text
+           //convo.say('Cool your deadline: ' + response.text);
+         map.remove(namedelete);
+           convo.next();  
+    },
+    {},'default');})})
 
 //TODO validation
 controller.hears(['add'],  [ 'direct_message'], function(bot,message) {
