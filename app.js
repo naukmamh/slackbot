@@ -37,7 +37,7 @@ controller.on('bot_channel_join', function (bot, message) {
 
 
 
-var map = new HashMap('Deadline 1','2017-06-11T21:45','Deadline 2', '2017-06-19T17:53','Deadline 3' ,'2017-06-12T20:48');
+var map = new HashMap('Deadline 1','2017-06-13T21:45','Deadline 2', '2017-06-20T17:53','Deadline 3' ,'2017-06-11T20:48');
  
 cron.schedule('* * * * *', function(){
  var now = new Date();
@@ -46,7 +46,7 @@ cron.schedule('* * * * *', function(){
  map.forEach(function(value, key) {
    // console.log(key + " : " + value);
     var date = new Date(value);
-  if(now.getFullYear() == date.getFullYear()&&now.getMonth() == date.getMonth()&&now.getDay() == date.getDay()&&
+  if(now.getFullYear() == date.getFullYear()&&now.getMonth() == date.getMonth()&&now.getDate() == date.getDate()&&
      now.getHours() == date.getHours()&& now.getMinutes() == date.getMinutes())
      {
      console.log(key);
@@ -59,20 +59,20 @@ cron.schedule('* * * * *', function(){
         });
      }
 
-    /*var weekdate = new Day(date.getFullYear(),date.getMonth(),date.getDay());
-    if(now.getFullYear() == weekdate.getFullYear()&&now.getMonth() == weekdate.getMonth()&&now.getDay() == weekdate.getDay())
-    // now.getHours() == date.getHours()&& now.getMinutes() == date.getMinutes())//?? 
-     {
-     console.log('7 day left to deadline ' + key);
+  //  var weekdate = new Day(date.getFullYear(),date.getMonth(),date.getDate()-7);
+  //   if(now.getFullYear() == weekdate.getFullYear()&&now.getMonth() == weekdate.getMonth()&&now.getDate() == weekdate.getDate())
+  //   // now.getHours() == date.getHours()&& now.getMinutes() == date.getMinutes())//?? 
+  //    {
+  //    console.log('7 day left to deadline ' + key);
 
-        bot.startConversation({
-           // user: '@allochka',
-            channel: 'C5K9XRGQ4',
-        }, (err, convo) => {
-            convo.say('7 day left to deadline ' + key)
-        });
-     }
-*/
+  //       bot.startConversation({
+  //          // user: '@allochka',
+  //           channel: 'C5K9XRGQ4',
+  //       }, (err, convo) => {
+  //           convo.say('7 day left to deadline ' + key)
+  //       });
+  //    }
+
  // else 
    // console.log('Check in every minutes');
 
@@ -97,19 +97,31 @@ function checkInvalidDate(date)
   var now = new Date();
   
     if(now.getFullYear() > date.getFullYear())
-    return false;
+      return false;
     
-    if(now.getMonth() > date.getMonth())
-    return false;
+    if(now.getFullYear() < date.getFullYear())
+      return true;
 
-    if(now.getDay() > date.getDay())
-    return false;
+    if(now.getMonth() > date.getMonth())
+      return false;
+
+    if(now.getMonth() < date.getMonth())
+     return true;
+
+    if(now.getDate() > date.getDate())
+    return false; 
     
+    if(now.getDate() < date.getDate())
+      return true;
+ 
     if(now.getHours() > date.getHours())
-    return false;
-    
+      return false;
+      
+    if(now.getHours() < date.getHours())
+      return true;
+ 
     if(now.getMinutes() > date.getMinutes())
-    return false;
+      return false;
 
     return true;
  
@@ -117,26 +129,26 @@ function checkInvalidDate(date)
 
 function firstdate(){
   deleteInvalidDate();
+  if(!map.keys().length) return 'No deadlines!!!';
   var array = map.values().sort();
-  return array[0];
+  return  map.search(array[0]) + ' ' + array[0].replace(/T/, ' ');
+
 }
 
  
-
 controller.hears(
   ['hello', 'hi', 'halo'], ['direct_message', 'direct_mention', 'mention'],
   function (bot, message) { bot.reply(message, 'Hello! I\'m notification bot!' ) })
 
   controller.hears(
   ['deadline'], ['direct_message'],
-  function (bot, message) { bot.reply(message, map.search(firstdate()) + ' ' + (firstdate()).replace(/T/, ' ')) })
+  function (bot, message) { bot.reply(message, firstdate())})
 
 
 function printall()
 {
   deleteInvalidDate();
-  if(map.values == null) consol.log('No deadlines');
-  //if(map == null) return 'No deadlines';
+  if(!map.keys().length) return 'No deadlines!!!';
   var s=''
   map.forEach(function(value, key)
    {
@@ -199,7 +211,7 @@ controller.hears(['add'],  [ 'direct_message'], function(bot,message) {
            var newDateTime = newdate+'T'+newtime;
            if(!checkInvalidDate(new Date(newDateTime)) )
            { convo.say('Invalid date!Try again');
-             //convo.repeat()
+            // convo.repeat()
              convo.next()
            }
            else
