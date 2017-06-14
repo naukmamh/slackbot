@@ -1,0 +1,16 @@
+{
+  "name": "deadline-slack-bot",
+  "version": "1.0.0",
+  "description": "Slackbot for notifications",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "beepboop-botkit": "^1.4.1",
+    "botkit": "~0.1.1",
+    "hashmap": "^2.1.0",
+    "node-cron": "^1.2.0",
+    "node-cron-job": "^0.2.3"
+  }
+}
