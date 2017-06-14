@@ -1,8 +1,8 @@
 var Botkit = require('botkit')
 var cron = require('node-cron');
 var HashMap = require('hashmap');
- 
-var token = 'xoxb-192818834532-DrpYX4YU71UC0ZcKZMO4QsDP'
+
+var token = 'xoxb-192818834532-ePVVVPkuJmSXwBFXwzteeVic'
 var controller = Botkit.slackbot({
   // reconnect to Slack RTM when connection goes bad
   retry: Infinity,
@@ -37,7 +37,7 @@ controller.on('bot_channel_join', function (bot, message) {
 
 
 
-var map = new HashMap('Deadline 1','2017-06-13T21:45','Deadline 2', '2017-06-20T17:53','Deadline 3' ,'2017-06-11T20:48');
+var map = new HashMap('Deadline 1','2017-06-14T21:30','Deadline 2', '2017-06-20T17:53','Deadline 3' ,'2017-06-11T20:48');
  
 cron.schedule('* * * * *', function(){
  var now = new Date();
@@ -51,13 +51,24 @@ cron.schedule('* * * * *', function(){
      {
      console.log(key);
 
+
+//bot.say({'Hello <@channel>'});
+ 
+
+ 
+
         bot.startConversation({
-           // user: '@allochka',
-            channel: 'C5K9XRGQ4',
+            //!!!user: 'U5JM7JLKB' ,
+            channel:  'C5K9XRGQ4',
         }, (err, convo) => {
-            convo.say(key)
+           // convo.say('@channel')
+            convo.say({text : 'Hello ' + convo.user})
         });
+        
      }
+
+
+     
 
   //  var weekdate = new Day(date.getFullYear(),date.getMonth(),date.getDate()-7);
   //   if(now.getFullYear() == weekdate.getFullYear()&&now.getMonth() == weekdate.getMonth()&&now.getDate() == weekdate.getDate())
@@ -78,6 +89,10 @@ cron.schedule('* * * * *', function(){
 
 });
  
+});
+
+controller.hears('chanel',['direct_mention', 'mention'],function(bot, message) {
+         bot.reply(message,'Hello <@'+'channel'+'>');
 });
 
 
@@ -167,15 +182,31 @@ function printall()
    controller.hears(
   ['delete'], ['direct_message'],
   function (bot, message) { 
+  
       bot.startConversation(message,function(err,convo) {
- 
-    convo.addQuestion('Enter name of deadline you want to delete.',function(response,convo) {
-        var namedelete = response.text
-           //convo.say('Cool your deadline: ' + response.text);
-         map.remove(namedelete);
+
+        convo.addQuestion('Enter password to delete.',function(response,convo) {
+        var enteredpass = response.text
+        if(enteredpass==='12345') 
+        { 
+        convo.addQuestion('Enter name of deadline you want to delete.',function(response,convo) {
+         var namedelete = response.text;
+        map.remove(namedelete);  convo.say(namedelete + ' removed!');
            convo.next();  
     },
-    {},'default');})})
+    {},'default');
+          }
+        else 
+        convo.say('Wrong password!!!');
+
+ convo.next();
+        
+    },
+    {},'default');
+
+   
+  
+ })})
 
 //TODO validation
 controller.hears(['add'],  [ 'direct_message'], function(bot,message) {
@@ -187,7 +218,11 @@ controller.hears(['add'],  [ 'direct_message'], function(bot,message) {
   // start a conversation to handle this response.
   bot.startConversation(message,function(err,convo) {
  
-    convo.addQuestion('I heard that you want to add new deadline! So, enter name of your deadline.',function(response,convo) {
+ convo.addQuestion('I heard that you want to add new deadline!Enter password to add.',function(response,convo) {
+        var enteredpass = response.text
+        if(enteredpass==='12345') 
+        { 
+    convo.addQuestion('Ok, enter name of your deadline.',function(response,convo) {
           
            newname = response.text
            convo.say('Cool your deadline: ' + response.text);
@@ -224,7 +259,14 @@ controller.hears(['add'],  [ 'direct_message'], function(bot,message) {
     },
     {},'default');
 
+  }
+        else 
+        convo.say('Wrong password!!!');
 
+ convo.next();
+        
+    },
+    {},'default');
 
   })
 
