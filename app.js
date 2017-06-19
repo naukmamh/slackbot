@@ -2,7 +2,7 @@ var Botkit = require('botkit')
 var cron = require('node-cron');
 var HashMap = require('hashmap');
  
-var token = process.env.ENV_VARIABLE
+var token = process.env.TOKEN
 var controller = Botkit.slackbot({
   // reconnect to Slack RTM when connection goes bad
   retry: Infinity,
